@@ -53,6 +53,14 @@ public class BetterWikiCommandConfig {
     public boolean menuOpenWiki = false;
 
     @Expose
+    @ConfigOption(
+        name = "Skip Confirmation",
+        desc = "Skips the confirmation when opening a link."
+    )
+    @ConfigEditorBoolean
+    public boolean skipConfirmation = false;
+
+    @Expose
     @ConfigOption(name = "Fandom Wiki Key", desc = "Search for an item on Wiki with this keybind.\n" +
         "§4For optimal experiences, do §lNOT§r §4bind this to a mouse button.")
     @ConfigEditorKeybind(defaultKey = Keyboard.KEY_NONE)

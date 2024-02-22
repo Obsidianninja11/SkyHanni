@@ -13,12 +13,20 @@ object OSUtils {
             try {
                 Desktop.getDesktop().browse(URI(url))
             } catch (e: IOException) {
-                ErrorManager.logError(e, "Error opening website: $url")
+                ErrorManager.logErrorWithData(e, "Error opening website: $url")
             }
         } else {
             copyToClipboard(url)
-            ChatUtils.error("Web browser is not supported! Copied url to clipboard.")
+            ErrorManager.logErrorStateWithData(
+                "Web browser is not supported! Copied url to clipboard.",
+                "Web browser not supported."
+                )
         }
+    }
+
+    fun openBrowserCommand(array: Array<String>) {
+        if (array.size != 1) return
+        openBrowser(array[0])
     }
 
     fun copyToClipboard(text: String) {

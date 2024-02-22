@@ -67,6 +67,7 @@ import at.hannibal2.skyhanni.test.command.TestChatCommand
 import at.hannibal2.skyhanni.utils.APIUtil
 import at.hannibal2.skyhanni.utils.ChatUtils
 import at.hannibal2.skyhanni.utils.LorenzUtils
+import at.hannibal2.skyhanni.utils.OSUtils
 import at.hannibal2.skyhanni.utils.SoundUtils
 import at.hannibal2.skyhanni.utils.TabListData
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPatternGui
@@ -434,6 +435,7 @@ object Commands {
             "shsendtranslation",
             "Respond with a translation of the message that the user clicks"
         ) { Translator.toEnglish(it) }
+        registerCommand("shopenlink", "Opens a link in the browser.") { OSUtils.openBrowserCommand(it) }
     }
 
     private fun shortenedCommands() {
