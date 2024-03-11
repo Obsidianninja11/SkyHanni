@@ -187,6 +187,32 @@ object ChatUtils {
         if (autoOpen) OSUtils.openBrowser(url)
     }
 
+    /**
+     * Sends a message to the user that they can click and run an action
+     * @param message The message to be sent
+     * @param action The action type
+     * @param actionText The action to perform
+     * @param hover The message to be shown when the message is hovered
+     * @param prefix Whether to prefix the message with the chat prefix, default true
+     * @param prefixColor Color that the prefix should be, default yellow (§e)
+     *
+     * @see CHAT_PREFIX
+     */
+   fun clickableActionChat(
+       message: String,
+       action: ClickEvent.Action,
+       actionText: String,
+       hover: String,
+       prefix: Boolean = true,
+       prefixColor: String = "§e"
+   ) {
+       val msgPrefix = if (prefix) prefixColor + CHAT_PREFIX else ""
+       val text = ChatComponentText(msgPrefix + message)
+       text.chatStyle.chatClickEvent = ClickEvent(action, actionText)
+       text.chatStyle.chatHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ChatComponentText("$prefixColor$hover"))
+       Minecraft.getMinecraft().thePlayer.addChatMessage(text)
+   }
+
     private var lastMessageSent = SimpleTimeMark.farPast()
     private val sendQueue: Queue<String> = LinkedList()
     private val messageDelay = 300.milliseconds

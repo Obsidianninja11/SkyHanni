@@ -435,7 +435,8 @@ object Commands {
             "shsendtranslation",
             "Respond with a translation of the message that the user clicks"
         ) { Translator.toEnglish(it) }
-        registerCommand("shopenlink", "Opens a link in the browser.") { OSUtils.openBrowserCommand(it) }
+        registerCommand("shopenlink", "Opens a link in the browser.") { OSUtils.openBrowser(it[0]) }
+        registerCommand("shopenfile", "Opens a file.") { OSUtils.openFile(it[0])}
     }
 
     private fun shortenedCommands() {

@@ -382,6 +382,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import java.io.File
 
 @Mod(
     modid = SkyHanniMod.MODID,
@@ -394,6 +395,9 @@ class SkyHanniMod {
 
     @Mod.EventHandler
     fun preInit(event: FMLPreInitializationEvent?) {
+        if (event != null) {
+            minecraftDirectory = event.sourceFile.parentFile.parentFile
+        }
         checkIfNeuIsLoaded()
 
         HotswapSupport.load()
@@ -815,6 +819,7 @@ class SkyHanniMod {
         val friendsData: FriendsJson get() = configManager.friendsData
         val knownFeaturesData: KnownFeaturesJson get() = configManager.knownFeaturesData
         val jacobContestsData: JacobContestsJson get() = configManager.jacobContestData
+        lateinit var minecraftDirectory: File
 
         lateinit var repo: RepoManager
         lateinit var configManager: ConfigManager
