@@ -6,6 +6,7 @@ import at.hannibal2.skyhanni.features.garden.visitor.VisitorAPI.ACCEPT_SLOT
 import at.hannibal2.skyhanni.features.garden.visitor.VisitorAPI.REFUSE_SLOT
 import at.hannibal2.skyhanni.features.garden.visitor.VisitorAPI.VisitorBlockReason
 import at.hannibal2.skyhanni.features.garden.visitor.VisitorAPI.lastClickedNpc
+import at.hannibal2.skyhanni.utils.ChatUtils
 import at.hannibal2.skyhanni.utils.DelayedRun
 import at.hannibal2.skyhanni.utils.ItemUtils.getLore
 import at.hannibal2.skyhanni.utils.ItemUtils.name
@@ -57,18 +58,24 @@ class VisitorRewardWarning {
         val stack = event.slot?.stack ?: return
 
         val visitor = VisitorAPI.getVisitor(lastClickedNpc) ?: return
+
+        if (!config.bypassKey.isKeyHeld()) event.isCanceled = true
+        ChatUtils.chat("Click type: ${event.clickType} enum: ${event.clickTypeEnum}")
+
         val blockReason = visitor.blockReason
 
         val isRefuseSlot = stack.name == "§cRefuse Offer"
         val isAcceptSlot = stack.name == "§aAccept Offer"
 
-        val shouldBlock = blockReason?.run { blockRefusing && isRefuseSlot || !blockRefusing && isAcceptSlot } ?: false
+        val shouldBlock =
+            true /* blockReason?.run { blockRefusing && isRefuseSlot || !blockRefusing && isAcceptSlot } ?: false */
         if (!config.bypassKey.isKeyHeld() && shouldBlock) {
             event.isCanceled = true
+            ChatUtils.chat("Click blocked of type ${event.clickType} ${event.clickTypeEnum}")
             return
         }
 
-        // all but shift clicktypes work for accepting visitor
+        // all but shift clicktypes work for accepting visitors
         if (event.clickTypeEnum == GuiContainerEvent.ClickType.SHIFT) return
         if (isRefuseSlot) {
             VisitorAPI.changeStatus(visitor, VisitorAPI.VisitorStatus.REFUSED, "refused")
