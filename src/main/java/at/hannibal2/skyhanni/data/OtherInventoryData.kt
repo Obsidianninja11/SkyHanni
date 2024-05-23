@@ -24,10 +24,8 @@ object OtherInventoryData {
     }
 
     fun close(reopenSameName: Boolean = false) {
-        currentInventory?.let {
-            InventoryCloseEvent(it, reopenSameName).postAndCatch()
-            currentInventory = null
-        }
+        InventoryCloseEvent(reopenSameName).postAndCatch()
+        currentInventory = null
     }
 
     @SubscribeEvent
@@ -39,7 +37,7 @@ object OtherInventoryData {
     }
 
     @SubscribeEvent
-    fun onChatPacket(event: PacketEvent.ReceiveEvent) {
+    fun onInventoryDataReceiveEvent(event: PacketEvent.ReceiveEvent) {
         val packet = event.packet
 
         if (packet is S2EPacketCloseWindow) {
@@ -50,8 +48,7 @@ object OtherInventoryData {
             val windowId = packet.windowId
             val title = packet.windowTitle.unformattedText
             val slotCount = packet.slotCount
-            val reopenSameName = title == currentInventory?.title
-            close(reopenSameName)
+            close(reopenSameName = title == currentInventory?.title)
 
             currentInventory = Inventory(windowId, title, slotCount)
             acceptItems = true

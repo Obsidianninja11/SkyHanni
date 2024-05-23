@@ -1,8 +1,10 @@
 package at.hannibal2.skyhanni.utils
 
 import at.hannibal2.skyhanni.SkyHanniMod.Companion.minecraftDirectory
+import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.test.command.ErrorManager
 import java.awt.Desktop
+import java.io.File
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -11,17 +13,24 @@ object OSUtils {
 
     @JvmStatic
     fun openBrowser(url: String) {
-        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+        val desktopSupported = Desktop.isDesktopSupported()
+        val supportedActionBrowse = Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)
+        if (desktopSupported && supportedActionBrowse) {
             try {
                 Desktop.getDesktop().browse(URI(url))
             } catch (e: IOException) {
-                ErrorManager.logErrorWithData(e, "Error opening website: $url")
+                ErrorManager.logErrorWithData(
+                    e, "Error while opening website.",
+                    "url" to url
+                )
             }
         } else {
             copyToClipboard(url)
             ErrorManager.logErrorStateWithData(
-                "Web browser is not supported! Copied url to clipboard.",
-                "Web browser not supported."
+                "Cannot open website! Copied url to clipboard instead", "Web browser is not supported",
+                "url" to url,
+                "desktopSupported" to desktopSupported,
+                "supportedActionBrowse" to supportedActionBrowse,
             )
         }
     }
@@ -35,7 +44,7 @@ object OSUtils {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
             try {
                 if (absolute) Desktop.getDesktop().open(File(path))
-                else Desktop.getDesktop().open(File("${minecraftDirectory.path}${File.separatorChar}$path"))
+                else Desktop.getDesktop().open(File("${SkyHanniMod.minecraftDirectory.path}${File.separatorChar}$path"))
             } catch (e: IOException) {
                 ErrorManager.logErrorWithData(e, "Error opening file: $path")
             }

@@ -1,6 +1,6 @@
 package at.hannibal2.skyhanni.features.garden.fortuneguide
 
-import at.hannibal2.skyhanni.config.Storage
+import at.hannibal2.skyhanni.config.storage.ProfileSpecificStorage
 import at.hannibal2.skyhanni.data.PetAPI
 import at.hannibal2.skyhanni.data.ProfileStorageData
 import at.hannibal2.skyhanni.events.GardenToolChangeEvent
@@ -18,6 +18,7 @@ import at.hannibal2.skyhanni.utils.LorenzUtils
 import at.hannibal2.skyhanni.utils.NumberUtil.romanToDecimal
 import at.hannibal2.skyhanni.utils.NumberUtil.romanToDecimalIfNecessary
 import at.hannibal2.skyhanni.utils.SkyBlockItemModifierUtils.getEnchantments
+import at.hannibal2.skyhanni.utils.StringUtils.matchFirst
 import at.hannibal2.skyhanni.utils.StringUtils.matchMatcher
 import at.hannibal2.skyhanni.utils.StringUtils.removeColor
 import at.hannibal2.skyhanni.utils.TabListData
@@ -106,10 +107,9 @@ object CaptureFarmingGear {
                 }
             }
         }
-        for (line in TabListData.getTabList()) {
-            strengthPattern.matchMatcher(line) {
-                GardenAPI.storage?.fortune?.farmingStrength = group("strength").toInt()
-            }
+
+        TabListData.getTabList().matchFirst(strengthPattern) {
+            GardenAPI.storage?.fortune?.farmingStrength = group("strength").toInt()
         }
     }
 
@@ -123,6 +123,12 @@ object CaptureFarmingGear {
         val storage = GardenAPI.storage?.fortune ?: return
         storage.pumpkinFortune = !storage.pumpkinFortune
         ChatUtils.chat("Toggled expired pumpkin fortune to: ${storage.pumpkinFortune}")
+    }
+
+    fun reverseCocoaBeansFortune() {
+        val storage = GardenAPI.storage?.fortune ?: return
+        storage.cocoaBeansFortune = !storage.cocoaBeansFortune
+        ChatUtils.chat("Toggled supreme chocolate bar fortune to: ${storage.cocoaBeansFortune}")
     }
 
     private fun getUniqueVisitorsForTier(tier: Int): Int {
@@ -183,16 +189,15 @@ object CaptureFarmingGear {
 
     private fun anita(
         items: Map<Int, ItemStack>,
-        storage: Storage.ProfileSpecific.GardenStorage.Fortune,
+        storage: ProfileSpecificStorage.GardenStorage.Fortune,
     ) {
         var level = -1
         for ((_, item) in items) {
             if (item.displayName.contains("Extra Farming Fortune")) {
                 level = 0
-                for (line in item.getLore()) {
-                    anitaMenuPattern.matchMatcher(line) {
-                        level = group("level").toInt() / 4
-                    }
+
+                item.getLore().matchFirst(anitaMenuPattern) {
+                    level = group("level").toInt() / 4
                 }
             }
         }
@@ -205,7 +210,7 @@ object CaptureFarmingGear {
 
     private fun configurePlots(
         items: Map<Int, ItemStack>,
-        storage: Storage.ProfileSpecific.GardenStorage.Fortune,
+        storage: ProfileSpecificStorage.GardenStorage.Fortune,
     ) {
         var plotsUnlocked = 24
         for (slot in items) {
@@ -232,7 +237,7 @@ object CaptureFarmingGear {
 
     private fun skills(
         items: Map<Int, ItemStack>,
-        storage: Storage.ProfileSpecific.GardenStorage.Fortune,
+        storage: ProfileSpecificStorage.GardenStorage.Fortune,
     ) {
         for ((_, item) in items) {
             if (item.displayName.contains("Farming ")) {
@@ -354,6 +359,9 @@ object CaptureFarmingGear {
         if (msg == "PUMPKINS EXPORTATION COMPLETE!") {
             storage.pumpkinFortune = true
         }
+        if (msg == "CHOCOLATE BARS EXPORTATION COMPLETE!") {
+            storage.cocoaBeansFortune = true
+        }
         if (msg == "[NPC] Carrolyn: Thank you for the carrots.") {
             storage.carrotFortune = true
             ChatUtils.chat("§aYou have already given Carrolyn enough Exportable Carrots.")
@@ -361,6 +369,10 @@ object CaptureFarmingGear {
         if (msg == "[NPC] Carrolyn: Thank you for the pumpkins.") {
             storage.pumpkinFortune = true
             ChatUtils.chat("§aYou have already given Carrolyn enough Expired Pumpkins.")
+        }
+        if (msg == "[NPC] Carrolyn: Thank you for the chocolate.") {
+            storage.cocoaBeansFortune = true
+            ChatUtils.chat("§aYou have already given Carrolyn enough Supreme Chocolate Bars.")
         }
     }
 }

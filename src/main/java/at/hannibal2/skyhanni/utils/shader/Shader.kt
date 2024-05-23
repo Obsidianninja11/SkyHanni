@@ -69,14 +69,14 @@ abstract class Shader(val vertex: String, val fragment: String) {
 
         if (ShaderHelper.glGetProgrami(shaderProgram, ShaderHelper.GL_LINK_STATUS) == GL11.GL_FALSE) {
             val errorMessage = "Failed to link vertex shader $vertex and fragment shader $fragment. Features that " +
-                    "utilise this shader will not work correctly, if at all"
+                "utilise this shader will not work correctly, if at all"
             val errorLog = StringUtils.trim(ShaderHelper.glGetShaderInfoLog(shaderProgram, 1024))
 
             if (ShaderManager.inWorld()) {
                 ErrorManager.logErrorWithData(
-                        OpenGLException("Shader linking error."),
-                        errorMessage,
-                        "Link Error:\n" to errorLog
+                    OpenGLException("Shader linking error."),
+                    errorMessage,
+                    "Link Error:\n" to errorLog
                 )
             } else {
                 LorenzUtils.consoleLog("$errorMessage $errorLog")
@@ -100,6 +100,12 @@ abstract class Shader(val vertex: String, val fragment: String) {
 
     fun disable() = ShaderHelper.glUseProgram(0)
 
+    /**
+     * @param uniformType Type of uniform, there should be a 1 to 1 equivalent to that in the shader file
+     * @param name The name of the uniform in the shader file. This should match exactly to the name given
+     * to the uniform in the shader file.
+     * @param uniformValuesSupplier The supplier that changes / sets the uniform's value
+     */
     fun <T> registerUniform(uniformType: Uniform.UniformType<T>, name: String, uniformValuesSupplier: Supplier<T>) {
         uniforms.add(Uniform(this, uniformType, name, uniformValuesSupplier))
     }

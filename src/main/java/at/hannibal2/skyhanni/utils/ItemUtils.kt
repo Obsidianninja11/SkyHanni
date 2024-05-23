@@ -4,7 +4,7 @@ import at.hannibal2.skyhanni.data.PetAPI
 import at.hannibal2.skyhanni.test.command.ErrorManager
 import at.hannibal2.skyhanni.utils.NEUInternalName.Companion.asInternalName
 import at.hannibal2.skyhanni.utils.NEUItems.getItemStackOrNull
-import at.hannibal2.skyhanni.utils.NumberUtil.formatNumber
+import at.hannibal2.skyhanni.utils.NumberUtil.formatInt
 import at.hannibal2.skyhanni.utils.SimpleTimeMark.Companion.asTimeMark
 import at.hannibal2.skyhanni.utils.SkyBlockItemModifierUtils.cachedData
 import at.hannibal2.skyhanni.utils.SkyBlockItemModifierUtils.getEnchantments
@@ -12,6 +12,7 @@ import at.hannibal2.skyhanni.utils.SkyBlockItemModifierUtils.isRecombobulated
 import at.hannibal2.skyhanni.utils.StringUtils.matchMatcher
 import at.hannibal2.skyhanni.utils.StringUtils.matches
 import at.hannibal2.skyhanni.utils.StringUtils.removeColor
+import at.hannibal2.skyhanni.utils.StringUtils.removeResets
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import net.minecraft.client.Minecraft
@@ -28,15 +29,6 @@ import kotlin.time.Duration.Companion.seconds
 object ItemUtils {
 
     private val itemNameCache = mutableMapOf<NEUInternalName, String>() // internal name -> item name
-
-    private val ignoredPetStrings = listOf(
-        "Archer",
-        "Berserk",
-        "Mage",
-        "Tank",
-        "Healer",
-        "➡",
-    )
 
     fun ItemStack.cleanName() = this.displayName.removeColor()
 
@@ -64,8 +56,6 @@ object ItemUtils {
 
     fun isRecombobulated(stack: ItemStack) = stack.isRecombobulated()
 
-    fun isPet(name: String): Boolean = UtilsPatterns.petLevelPattern.matches(name) && !ignoredPetStrings.any { name.contains(it) }
-
     fun maxPetLevel(name: String) = if (name.contains("Golden Dragon")) 200 else 100
 
     fun getItemsInInventory(withCursorItem: Boolean = false): List<ItemStack> {
@@ -85,25 +75,6 @@ object ItemUtils {
             list.add(player.inventory.itemStack)
         }
         return list
-    }
-
-    fun getItemsInInventoryWithSlots(withCursorItem: Boolean = false): Map<ItemStack, Int> {
-        val map: LinkedHashMap<ItemStack, Int> = LinkedHashMap()
-        val player = Minecraft.getMinecraft().thePlayer
-        if (player == null) {
-            ChatUtils.error("getItemsInInventoryWithSlots: player is null!")
-            return map
-        }
-        for (slot in player.openContainer.inventorySlots) {
-            if (slot.hasStack) {
-                map[slot.stack] = slot.slotNumber
-            }
-        }
-
-        if (withCursorItem && player.inventory != null && player.inventory.itemStack != null) {
-            map[player.inventory.itemStack] = -1
-        }
-        return map
     }
 
     fun hasAttributes(stack: ItemStack): Boolean {
@@ -140,7 +111,8 @@ object ItemUtils {
         if (name == "§fWisp's Ice-Flavored Water I Splash Potion") {
             return NEUInternalName.WISP_POTION
         }
-        return NEUItems.getInternalName(this)?.asInternalName()
+        val internalName = NEUItems.getInternalName(this)?.replace("ULTIMATE_ULTIMATE_", "ULTIMATE_")
+        return internalName?.asInternalName()
     }
 
     fun ItemStack.isVanilla() = NEUItems.isVanillaItem(this)
@@ -169,12 +141,7 @@ object ItemUtils {
     }
 
     // Taken from NEU
-    fun createSkull(displayName: String, uuid: String, value: String): ItemStack {
-        return createSkull(displayName, uuid, value, null)
-    }
-
-    // Taken from NEU
-    fun createSkull(displayName: String, uuid: String, value: String, lore: Array<String>?): ItemStack {
+    fun createSkull(displayName: String, uuid: String, value: String, vararg lore: String): ItemStack {
         val render = ItemStack(Items.skull, 1, 3)
         val tag = NBTTagCompound()
         val skullOwner = NBTTagCompound()
@@ -188,7 +155,7 @@ object ItemUtils {
 
         textures.appendTag(textures0)
 
-        addNameAndLore(tag, displayName, lore)
+        addNameAndLore(tag, displayName, *lore)
 
         properties.setTag("textures", textures)
         skullOwner.setTag("Properties", properties)
@@ -198,10 +165,10 @@ object ItemUtils {
     }
 
     // Taken from NEU
-    private fun addNameAndLore(tag: NBTTagCompound, displayName: String, lore: Array<String>?) {
+    private fun addNameAndLore(tag: NBTTagCompound, displayName: String, vararg lore: String) {
         val display = NBTTagCompound()
         display.setString("Name", displayName)
-        if (lore != null) {
+        if (lore.isNotEmpty()) {
             val tagLore = NBTTagList()
             for (line in lore) {
                 tagLore.appendTag(NBTTagString(line))
@@ -214,10 +181,9 @@ object ItemUtils {
     fun ItemStack.getItemRarityOrCommon() = getItemRarityOrNull() ?: LorenzRarity.COMMON
 
     private fun ItemStack.readItemCategoryAndRarity(): Pair<LorenzRarity?, ItemCategory?> {
-        val name = this.name ?: ""
         val cleanName = this.cleanName()
 
-        if (isPet(cleanName)) {
+        if (PetAPI.hasPetName(cleanName)) {
             return getPetRarity(this) to ItemCategory.PET
         }
 
@@ -260,7 +226,8 @@ object ItemUtils {
     private fun getItemCategory(itemCategory: String, name: String, cleanName: String = name.removeColor()) =
         if (itemCategory.isEmpty()) when {
             UtilsPatterns.abiPhonePattern.matches(name) -> ItemCategory.ABIPHONE
-            isPet(cleanName) -> ItemCategory.PET
+            PetAPI.hasPetName(cleanName) -> ItemCategory.PET
+            UtilsPatterns.baitPattern.matches(cleanName) -> ItemCategory.FISHING_BAIT
             UtilsPatterns.enchantedBookPattern.matches(name) -> ItemCategory.ENCHANTED_BOOK
             UtilsPatterns.potionPattern.matches(name) -> ItemCategory.POTION
             UtilsPatterns.sackPattern.matches(name) -> ItemCategory.SACK
@@ -302,16 +269,20 @@ object ItemUtils {
     private fun itemRarityLastCheck(data: CachedItemData) =
         data.itemRarityLastCheck.asTimeMark().passedSince() > 10.seconds
 
-    // extra method for shorter name and kotlin nullability logic
-    var ItemStack.name: String?
-        get() = this.displayName
+    /**
+     * Use when comparing the name (e.g. regex), not for showing to the user
+     * Member that provides the item name, is null save or throws visual error
+     */
+    var ItemStack.name: String
+        get() = this.displayName ?: ErrorManager.skyHanniError(
+            "Could not get name if ItemStack",
+            "itemStack" to this,
+            "displayName" to displayName,
+            "internal name" to getInternalNameOrNull(),
+        )
         set(value) {
             setStackDisplayName(value)
         }
-
-    @Deprecated("outdated", ReplaceWith("itemName"))
-    val ItemStack.nameWithEnchantment: String?
-        get() = getInternalNameOrNull()?.itemName
 
     fun isSkyBlockMenuItem(stack: ItemStack?): Boolean = stack?.getInternalName()?.equals("SKYBLOCK_MENU") ?: false
 
@@ -319,9 +290,9 @@ object ItemUtils {
 
     fun readItemAmount(originalInput: String): Pair<String, Int>? {
         // This workaround fixes 'Tubto Cacti I Book'
-        val input = if (originalInput.endsWith(" Book")) {
+        val input = (if (originalInput.endsWith(" Book")) {
             originalInput.replace(" Book", "")
-        } else originalInput
+        } else originalInput).removeResets()
 
         if (itemAmountCache.containsKey(input)) {
             return itemAmountCache[input]!!
@@ -339,9 +310,6 @@ object ItemUtils {
         string = string.substring(2)
         val matcher = UtilsPatterns.readAmountAfterPattern.matcher(string)
         if (!matcher.matches()) {
-            println("")
-            println("input: '$input'")
-            println("string: '$string'")
             return null
         }
 
@@ -351,7 +319,7 @@ object ItemUtils {
 
     private fun makePair(input: String, itemName: String, matcher: Matcher): Pair<String, Int> {
         val matcherAmount = matcher.group("amount")
-        val amount = matcherAmount?.formatNumber()?.toInt() ?: 1
+        val amount = matcherAmount?.formatInt() ?: 1
         val pair = Pair(itemName, amount)
         itemAmountCache[input] = pair
         return pair
@@ -376,11 +344,13 @@ object ItemUtils {
 
     fun NEUInternalName.isRune(): Boolean = contains("_RUNE;")
 
+    // use when showing the item name to the user (in guis, chat message, etc), not for comparing
     val ItemStack.itemName: String
         get() = getInternalName().itemName
 
     val ItemStack.itemNameWithoutColor: String get() = itemName.removeColor()
 
+    // use when showing the item name to the user (in guis, chat message, etc), not for comparing
     val NEUInternalName.itemName: String
         get() = itemNameCache.getOrPut(this) { grabItemName() }
 
@@ -396,13 +366,19 @@ object ItemUtils {
         if (this == NEUInternalName.NONE) {
             error("NEUInternalName.NONE has no name!")
         }
+        if (NEUItems.ignoreItemsFilter.match(this.asString())) {
+            return "§cBugged Item"
+        }
 
         val itemStack = getItemStackOrNull()
         val name = itemStack?.name ?: error("Could not find item name for $this")
 
         // show enchanted book name
-        if (name.endsWith("Enchanted Book")) {
+        if (itemStack.getItemCategoryOrNull() == ItemCategory.ENCHANTED_BOOK) {
             return itemStack.getLore()[0]
+        }
+        if (name.endsWith("Enchanted Book Bundle")) {
+            return name.replace("Enchanted Book", itemStack.getLore()[0].removeColor())
         }
 
         // hide pet level
@@ -410,5 +386,24 @@ object ItemUtils {
             return "$it Pet"
         }
         return name
+    }
+
+    fun ItemStack.loreCosts(): MutableList<NEUInternalName> {
+        var found = false
+        val list = mutableListOf<NEUInternalName>()
+        for (lines in getLore()) {
+            if (lines == "§7Cost") {
+                found = true
+                continue
+            }
+
+            if (!found) continue
+            if (lines.isEmpty()) return list
+
+            NEUInternalName.fromItemNameOrNull(lines)?.let {
+                list.add(it)
+            }
+        }
+        return list
     }
 }

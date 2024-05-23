@@ -2,9 +2,9 @@ package at.hannibal2.skyhanni.config.features.fishing.trophyfishing;
 
 import at.hannibal2.skyhanni.config.FeatureToggle;
 import com.google.gson.annotations.Expose;
-import io.github.moulberry.moulconfig.annotations.ConfigEditorBoolean;
-import io.github.moulberry.moulconfig.annotations.ConfigEditorColour;
-import io.github.moulberry.moulconfig.annotations.ConfigOption;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorColour;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigOption;
 
 public class GeyserFishingConfig {
 
@@ -28,4 +28,9 @@ public class GeyserFishingConfig {
     @ConfigOption(name = "Geyser Box Color", desc = "Color of the Geyser Box.")
     @ConfigEditorColour
     public String boxColor = "0:245:85:255:85";
+
+    @Expose
+    @ConfigOption(name = "Only With Rod", desc = "Only render the geyser box while holding a lava rod.")
+    @ConfigEditorBoolean
+    public boolean onlyWithRod = true;
 }

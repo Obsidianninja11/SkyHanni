@@ -22,7 +22,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-class GriffinBurrowParticleFinder {
+object GriffinBurrowParticleFinder {
 
     private val config get() = SkyHanniMod.feature.event.diana
 
@@ -56,7 +56,7 @@ class GriffinBurrowParticleFinder {
     }
 
     @SubscribeEvent(priority = EventPriority.LOW, receiveCanceled = true)
-    fun onChatPacket(event: PacketEvent.ReceiveEvent) {
+    fun onPacketReceive(event: PacketEvent.ReceiveEvent) {
         if (!isEnabled()) return
         if (!config.burrowsSoopyGuess) return
         val packet = event.packet
@@ -67,7 +67,7 @@ class GriffinBurrowParticleFinder {
             if (particleType != null) {
 
                 val location = packet.toLorenzVec().toBlockPos().down().toLorenzVec()
-                if (recentlyDugParticleBurrows.contains(location)) return
+                if (location in recentlyDugParticleBurrows) return
                 val burrow = burrows.getOrPut(location) { Burrow(location) }
 
                 when (particleType) {
@@ -122,6 +122,10 @@ class GriffinBurrowParticleFinder {
 
     @SubscribeEvent
     fun onWorldChange(event: LorenzWorldChangeEvent) {
+        reset()
+    }
+
+    fun reset() {
         burrows.clear()
         recentlyDugParticleBurrows.clear()
     }

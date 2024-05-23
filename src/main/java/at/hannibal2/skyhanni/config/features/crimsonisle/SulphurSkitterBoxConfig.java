@@ -2,10 +2,10 @@ package at.hannibal2.skyhanni.config.features.crimsonisle;
 
 import at.hannibal2.skyhanni.config.FeatureToggle;
 import com.google.gson.annotations.Expose;
-import io.github.moulberry.moulconfig.annotations.ConfigEditorBoolean;
-import io.github.moulberry.moulconfig.annotations.ConfigEditorColour;
-import io.github.moulberry.moulconfig.annotations.ConfigEditorDropdown;
-import io.github.moulberry.moulconfig.annotations.ConfigOption;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorColour;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorDropdown;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigOption;
 
 public class SulphurSkitterBoxConfig {
 
@@ -47,6 +47,4 @@ public class SulphurSkitterBoxConfig {
     @ConfigOption(name = "Only With Rods", desc = "Render the box only when holding a lava fishing rod.")
     @ConfigEditorBoolean
     public boolean onlyWithRods = true;
-
-
 }

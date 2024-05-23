@@ -19,7 +19,7 @@ import at.hannibal2.skyhanni.utils.NEUInternalName
 import at.hannibal2.skyhanni.utils.NEUInternalName.Companion.asInternalName
 import at.hannibal2.skyhanni.utils.NumberUtil
 import at.hannibal2.skyhanni.utils.NumberUtil.addSeparators
-import at.hannibal2.skyhanni.utils.NumberUtil.formatNumber
+import at.hannibal2.skyhanni.utils.NumberUtil.formatInt
 import at.hannibal2.skyhanni.utils.SimpleTimeMark
 import at.hannibal2.skyhanni.utils.StringUtils
 import at.hannibal2.skyhanni.utils.StringUtils.matchMatcher
@@ -125,7 +125,7 @@ object FishingProfitTracker {
         addAsSingletonList(
             Renderable.hoverTips(
                 "§7Times fished: §e${fishedCount.addSeparators()}",
-                listOf("§7You catched §e${fishedCount.addSeparators()} §7times something.")
+                listOf("§7You've reeled in §e${fishedCount.addSeparators()} §7catches.")
             )
         )
 
@@ -192,8 +192,7 @@ object FishingProfitTracker {
     @SubscribeEvent
     fun onChat(event: LorenzChatEvent) {
         coinsChatPattern.matchMatcher(event.message) {
-            val coins = group("coins").formatNumber()
-            tracker.addCoins(coins.toInt())
+            tracker.addCoins(group("coins").formatInt())
             addCatch()
         }
     }
@@ -210,7 +209,7 @@ object FishingProfitTracker {
         if (!isEnabled()) return
 
         val recentPickup = config.showWhenPickup && lastCatchTime.passedSince() < 3.seconds
-        if (recentPickup || FishingAPI.isFishing()) {
+        if (recentPickup || FishingAPI.isFishing(checkRodInHand = false)) {
             tracker.renderDisplay(config.position)
         }
     }
@@ -238,8 +237,8 @@ object FishingProfitTracker {
         tracker.firstUpdate()
     }
 
-    fun resetCommand(args: Array<String>) {
-        tracker.resetCommand(args, "shresetfishingtracker")
+    fun resetCommand() {
+        tracker.resetCommand()
     }
 
     fun isEnabled() = LorenzUtils.inSkyBlock && config.enabled && !LorenzUtils.inKuudraFight

@@ -13,7 +13,8 @@ import at.hannibal2.skyhanni.utils.ItemUtils.getLore
 import at.hannibal2.skyhanni.utils.ItemUtils.name
 import at.hannibal2.skyhanni.utils.LorenzUtils
 import at.hannibal2.skyhanni.utils.NumberUtil.addSeparators
-import at.hannibal2.skyhanni.utils.NumberUtil.formatNumber
+import at.hannibal2.skyhanni.utils.NumberUtil.formatInt
+import at.hannibal2.skyhanni.utils.NumberUtil.formatLong
 import at.hannibal2.skyhanni.utils.NumberUtil.romanToDecimalIfNecessary
 import at.hannibal2.skyhanni.utils.OSUtils
 import at.hannibal2.skyhanni.utils.StringUtils.matchMatcher
@@ -79,8 +80,7 @@ object GardenCropMilestonesCommunityFix {
         crop: CropType,
         wrongData: MutableList<String>,
     ) {
-        val name = stack.name ?: return
-        val rawNumber = name.removeColor().replace(crop.cropName, "").trim()
+        val rawNumber = stack.name.removeColor().replace(crop.cropName, "").trim()
         val realTier = if (rawNumber == "") 0 else rawNumber.romanToDecimalIfNecessary()
 
         val lore = stack.getLore()
@@ -91,13 +91,10 @@ object GardenCropMilestonesCommunityFix {
 //         debug("crop: $crop")
 //         debug("realTier: $realTier")
 
-        val guessNextMax = GardenCropMilestones.getCropsForTier(
-            realTier + 1,
-            crop
-        ) - GardenCropMilestones.getCropsForTier(realTier, crop)
+        val guessNextMax = GardenCropMilestones.getCropsForTier(realTier + 1, crop) - GardenCropMilestones.getCropsForTier(realTier, crop)
 //         debug("guessNextMax: ${guessNextMax.addSeparators()}")
         val nextMax = amountPattern.matchMatcher(next) {
-            group("max").formatNumber()
+            group("max").formatLong()
         } ?: return
 //         debug("nextMax real: ${nextMax.addSeparators()}")
         if (nextMax != guessNextMax) {
@@ -105,10 +102,10 @@ object GardenCropMilestonesCommunityFix {
             wrongData.add("$crop:$realTier:${nextMax.addSeparators()}")
         }
 
-        val guessTotalMax = GardenCropMilestones.getCropsForTier(46, crop)
+        val guessTotalMax = GardenCropMilestones.getCropsForTier(46, crop) // no need to overflow here
 //         println("guessTotalMax: ${guessTotalMax.addSeparators()}")
         val totalMax = amountPattern.matchMatcher(total) {
-            group("max").formatNumber()
+            group("max").formatLong()
         } ?: return
 //         println("totalMax real: ${totalMax.addSeparators()}")
         val totalOffBy = guessTotalMax - totalMax
@@ -150,7 +147,7 @@ object GardenCropMilestonesCommunityFix {
             val (rawCrop, tier, amount) = split
             val crop = LorenzUtils.enumValueOf<CropType>(rawCrop)
 
-            if (tryFix(crop, tier.toInt(), amount.formatNumber().toInt())) {
+            if (tryFix(crop, tier.toInt(), amount.formatInt())) {
                 fixed++
             } else {
                 alreadyCorrect++
@@ -163,13 +160,8 @@ object GardenCropMilestonesCommunityFix {
     }
 
     private fun tryFix(crop: CropType, tier: Int, amount: Int): Boolean {
-        val guessNextMax = GardenCropMilestones.getCropsForTier(tier + 1, crop) - GardenCropMilestones.getCropsForTier(
-            tier,
-            crop
-        )
-        if (guessNextMax.toInt() == amount) {
-            return false
-        }
+        val guessNextMax = GardenCropMilestones.getCropsForTier(tier + 1, crop) - GardenCropMilestones.getCropsForTier(tier, crop)
+        if (guessNextMax.toInt() == amount) return false
         GardenCropMilestones.cropMilestoneData = GardenCropMilestones.cropMilestoneData.editCopy {
             fix(crop, this, tier, amount)
         }

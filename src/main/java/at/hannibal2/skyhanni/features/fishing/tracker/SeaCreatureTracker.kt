@@ -162,13 +162,13 @@ object SeaCreatureTracker {
     @SubscribeEvent
     fun onRenderOverlay(event: GuiRenderEvent) {
         if (!isEnabled()) return
-        if (!FishingAPI.isFishing()) return
+        if (!FishingAPI.isFishing(checkRodInHand = false)) return
 
         tracker.renderDisplay(config.position)
     }
 
-    fun resetCommand(args: Array<String>) {
-        tracker.resetCommand(args, "shresetseacreaturetracker")
+    fun resetCommand() {
+        tracker.resetCommand()
     }
 
     private fun isEnabled() = LorenzUtils.inSkyBlock && config.enabled && !isTrophyFishing && !LorenzUtils.inKuudraFight

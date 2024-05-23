@@ -30,7 +30,7 @@ object SlayerAPI {
     var latestSlayerCategory = ""
     private var latestProgressChangeTime = 0L
     var latestWrongAreaWarning = 0L
-    private var latestSlayerProgress = ""
+    var latestSlayerProgress = ""
 
     fun hasActiveSlayerQuest() = latestSlayerCategory != ""
 
@@ -98,10 +98,8 @@ object SlayerAPI {
 
     private fun grabActiveSlayer(): SlayerType? {
         for (line in ScoreboardData.sidebarLinesFormatted) {
-            for (type in SlayerType.entries) {
-                if (line.contains(type.displayName)) {
-                    return type
-                }
+            SlayerType.getByName(line)?.let {
+                return it
             }
         }
 
@@ -158,6 +156,7 @@ object SlayerAPI {
         -> SlayerType.SVEN
 
         "The End",
+        "Dragon's Nest",
         "Void Sepulture",
         "Zealot Bruiser Hideout",
         -> SlayerType.VOID

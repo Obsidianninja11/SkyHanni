@@ -2,15 +2,16 @@ package at.hannibal2.skyhanni.utils.shader
 
 import at.hannibal2.skyhanni.features.chroma.StandardChromaShader
 import at.hannibal2.skyhanni.features.chroma.TexturedChromaShader
+import at.hannibal2.skyhanni.features.misc.RoundedRectangleOutlineShader
 import at.hannibal2.skyhanni.features.misc.RoundedRectangleShader
 import at.hannibal2.skyhanni.test.command.ErrorManager
 import at.hannibal2.skyhanni.utils.LorenzUtils
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
 import org.apache.commons.lang3.StringUtils
 import org.lwjgl.opengl.OpenGLException
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 /**
  * Object to handle shaders for SkyHanni
@@ -19,13 +20,14 @@ object ShaderManager {
 
     /**
      * For any future shaders add the object instance in this enum and
-     * in the when expression
+     * in the when-expression
      */
     enum class Shaders(val shader: Shader) {
-
         STANDARD_CHROMA(StandardChromaShader.INSTANCE),
         TEXTURED_CHROMA(TexturedChromaShader.INSTANCE),
-        ROUNDED_RECTANGLE(RoundedRectangleShader.INSTANCE);
+        ROUNDED_RECTANGLE(RoundedRectangleShader.INSTANCE),
+        ROUNDED_RECT_OUTLINE(RoundedRectangleOutlineShader.INSTANCE),
+        ;
 
         companion object {
 
@@ -33,6 +35,7 @@ object ShaderManager {
                 "standard_chroma" -> STANDARD_CHROMA.shader
                 "textured_chroma" -> TEXTURED_CHROMA.shader
                 "rounded_rect" -> ROUNDED_RECTANGLE.shader
+                "rounded_rect_outline" -> ROUNDED_RECT_OUTLINE.shader
                 else -> {
                     null
                 }
@@ -86,15 +89,15 @@ object ShaderManager {
 
         if (ShaderHelper.glGetShaderi(shaderID, ShaderHelper.GL_COMPILE_STATUS) == 0) {
             val errorMessage = "Failed to compile shader $fileName${type.extension}. Features that utilise this " +
-                    "shader will not work correctly, if at all"
+                "shader will not work correctly, if at all"
             val errorLog = StringUtils.trim(ShaderHelper.glGetShaderInfoLog(shaderID, 1024))
 
             if (inWorld()) {
                 ErrorManager.logErrorWithData(
-                        OpenGLException("Shader compilation error."),
-                        errorMessage,
-                        "GLSL Compilation Error:\n" to errorLog
-                        )
+                    OpenGLException("Shader compilation error."),
+                    errorMessage,
+                    "GLSL Compilation Error:\n" to errorLog
+                )
             } else {
                 LorenzUtils.consoleLog("$errorMessage $errorLog")
             }

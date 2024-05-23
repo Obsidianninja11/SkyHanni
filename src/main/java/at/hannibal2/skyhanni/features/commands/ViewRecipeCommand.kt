@@ -8,17 +8,17 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object ViewRecipeCommand {
 
-    private val config get() = SkyHanniMod.feature.commands
+    private val config get() = SkyHanniMod.feature.misc.commands
 
     @SubscribeEvent
     fun onMessageSendToServer(event: MessageSendToServerEvent) {
         if (!config.viewRecipeLowerCase) return
         val message = event.message
+        if (!message.startsWith("/viewrecipe ", ignoreCase = true)) return
+
         if (message == message.uppercase()) return
-        if (message.startsWith("/viewrecipe ", ignoreCase = true)) {
-            event.isCanceled = true
-            ChatUtils.sendCommandToServer(message.uppercase())
-        }
+        event.isCanceled = true
+        ChatUtils.sendCommandToServer(message.uppercase().drop(1))
     }
 
     val list by lazy {

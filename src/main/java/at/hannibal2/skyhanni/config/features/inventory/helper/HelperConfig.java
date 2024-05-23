@@ -2,9 +2,9 @@ package at.hannibal2.skyhanni.config.features.inventory.helper;
 
 import at.hannibal2.skyhanni.config.FeatureToggle;
 import com.google.gson.annotations.Expose;
-import io.github.moulberry.moulconfig.annotations.Accordion;
-import io.github.moulberry.moulconfig.annotations.ConfigEditorBoolean;
-import io.github.moulberry.moulconfig.annotations.ConfigOption;
+import io.github.notenoughupdates.moulconfig.annotations.Accordion;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigOption;
 
 public class HelperConfig {
     @Expose
@@ -34,6 +34,12 @@ public class HelperConfig {
         @ConfigOption(name = "Show Numbers", desc = "In the Harp, show buttons as stack size (intended to be used with the Keybinds).")
         @ConfigEditorBoolean
         public boolean showNumbers = false;
+
+        @Expose
+        @ConfigOption(name = "Hide Tooltip", desc = "Hides the item tooltips inside the Harp.")
+        @ConfigEditorBoolean
+        @FeatureToggle
+        public boolean hideMelodyTooltip = false;
 
         @Expose
         @ConfigOption(name = "Keybinds", desc = "")

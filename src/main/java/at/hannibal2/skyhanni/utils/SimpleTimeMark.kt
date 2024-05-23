@@ -1,7 +1,9 @@
 package at.hannibal2.skyhanni.utils
 
-import io.github.moulberry.notenoughupdates.util.SkyBlockTime
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -22,6 +24,8 @@ value class SimpleTimeMark(private val millis: Long) : Comparable<SimpleTimeMark
 
     fun isInPast() = timeUntil().isNegative()
 
+    fun isInFuture() = timeUntil().isPositive()
+
     fun isFarPast() = millis == 0L
 
     override fun compareTo(other: SimpleTimeMark): Int = millis.compareTo(other.millis)
@@ -31,14 +35,26 @@ value class SimpleTimeMark(private val millis: Long) : Comparable<SimpleTimeMark
         return Instant.ofEpochMilli(millis).toString()
     }
 
+    fun formattedDate(pattern: String): String {
+        val instant = Instant.ofEpochMilli(millis)
+        val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+        val formatter = DateTimeFormatter.ofPattern(pattern)
+        return localDateTime.format(formatter)
+    }
+
     fun toMillis() = millis
 
     fun toSkyBlockTime() = SkyBlockTime.fromInstant(Instant.ofEpochMilli(millis))
+
+    fun elapsedMinutes() = passedSince().inWholeMinutes
 
     companion object {
 
         fun now() = SimpleTimeMark(System.currentTimeMillis())
         fun farPast() = SimpleTimeMark(0)
+        fun farFuture() = SimpleTimeMark(Long.MAX_VALUE)
+
+        fun Duration.fromNow() = now() + this
 
         fun Long.asTimeMark() = SimpleTimeMark(this)
         fun SkyBlockTime.asTimeMark() = SimpleTimeMark(toMillis())

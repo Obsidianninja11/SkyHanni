@@ -28,30 +28,40 @@ object UtilsPatterns {
         ".{2}Abiphone .*"
     )
 
+    /**
+     * REGEX-TEST: §fEnchanted Book
+     * REGEX-TEST: §f§f§fEnchanted Book
+     */
     val enchantedBookPattern by patternGroup.pattern(
         "item.name.enchanted.book",
-        ".{2}?Enchanted Book"
+        "(?:§.)+Enchanted Book"
     )
+
+    val baitPattern by patternGroup.pattern(
+        "item.name.bait",
+        "^(Obfuscated.*|.* Bait)$"
+    )
+
     val enchantmentNamePattern by patternGroup.pattern(
         "item.neuitems.enchantmentname",
-        "^(?<format>(?:§.)+)(?<name>[^§]+) (?<level>[IVXL]+)$"
+        "^(?<format>(?:§.)*)(?<name>[^§]+) (?<level>[IVXL]+)(?: Book)?$"
     )
 
     val potionPattern by patternGroup.pattern(
         "item.name.potion",
         ".*Potion"
     )
-    val petLevelPattern by patternGroup.pattern(
-        "item.petlevel",
-        "(?:§f§f)?(?:§7)?\\[Lvl (?<level>\\d+)] .*"
-    )
     val readAmountBeforePattern by patternGroup.pattern(
         "item.amount.front",
-        "(?: *§8(\\+§\\w)?(?<amount>[\\d.km,]+)(x )?)?(?<name>.*)"
+        "(?: +§8(?:\\+§.)?(?<amount>[\\d.,]+[km]?)x? )?(?<name>.*)"
     )
     val readAmountAfterPattern by patternGroup.pattern(
         "item.amount.behind",
-        "(?<name>(?:['\\w-]+ ?)+)(?:§8x(?<amount>[\\d,]+))?"
+        "(?<name>(?:§.)*(?:[^§] ?)+)(?:§8x(?<amount>[\\d,]+))?"
+    )
+    val costLinePattern by patternGroup.pattern(
+        "item.cost.line",
+        "(?:§5§o)?§7Cost.*"
     )
 
     val timeAmountPattern by patternGroup.pattern(
@@ -80,5 +90,15 @@ object UtilsPatterns {
     val seasonPattern by patternGroup.pattern(
         "skyblocktime.season",
         "(?:Early |Late )?(?<season>Spring|Summer|Autumn|Winter)"
+    )
+
+    val tabListProfilePattern by patternGroup.pattern(
+        "tablist.profile",
+        "(?:§.)+Profile: §r§a(?<profile>[\\w\\s]+[^ §]).*"
+    )
+
+    val shopOptionsPattern by patternGroup.pattern(
+        "inventory.shopoptions",
+        "Shop Trading Options"
     )
 }

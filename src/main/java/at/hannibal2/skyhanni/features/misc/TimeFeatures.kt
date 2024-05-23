@@ -2,6 +2,7 @@ package at.hannibal2.skyhanni.features.misc
 
 import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.config.ConfigUpdaterMigrator
+import at.hannibal2.skyhanni.config.enums.OutsideSbFeature
 import at.hannibal2.skyhanni.data.IslandType
 import at.hannibal2.skyhanni.data.WinterAPI
 import at.hannibal2.skyhanni.events.GuiRenderEvent
@@ -10,8 +11,8 @@ import at.hannibal2.skyhanni.utils.LorenzUtils.isInIsland
 import at.hannibal2.skyhanni.utils.RecalculatingValue
 import at.hannibal2.skyhanni.utils.RenderUtils.renderString
 import at.hannibal2.skyhanni.utils.SimpleTimeMark.Companion.asTimeMark
+import at.hannibal2.skyhanni.utils.SkyBlockTime
 import at.hannibal2.skyhanni.utils.TimeUtils.format
-import io.github.moulberry.notenoughupdates.util.SkyBlockTime
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.text.SimpleDateFormat
 import kotlin.time.Duration.Companion.days
@@ -31,7 +32,7 @@ class TimeFeatures {
 
     @SubscribeEvent
     fun onRenderOverlay(event: GuiRenderEvent.GuiOverlayRenderEvent) {
-        if (!LorenzUtils.inSkyBlock) return
+        if (!LorenzUtils.inSkyBlock && !OutsideSbFeature.REAL_TIME.isSelected()) return
 
         if (config.realTime) {
             val currentTime =

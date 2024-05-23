@@ -63,7 +63,7 @@ class SpawnTimers {
     }
 
     @SubscribeEvent
-    fun onChatReceived(event: LorenzChatEvent) {
+    fun onChat(event: LorenzChatEvent) {
         if (!isEnabled()) return
         val message = event.message.removeColor().lowercase()
 
@@ -79,7 +79,7 @@ class SpawnTimers {
 
     // All this to detect "quickspawn" vs regular arachne spawn
     @SubscribeEvent(priority = EventPriority.LOW, receiveCanceled = true)
-    fun onChatPacket(event: PacketEvent.ReceiveEvent) {
+    fun onPacketReceive(event: PacketEvent.ReceiveEvent) {
         if (!saveNextTickParticles) return
         if (System.currentTimeMillis() <= searchTime + 3000) return
 

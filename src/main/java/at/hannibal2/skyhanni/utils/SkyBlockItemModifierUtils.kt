@@ -1,12 +1,12 @@
 package at.hannibal2.skyhanni.utils
 
 import at.hannibal2.skyhanni.config.ConfigManager
+import at.hannibal2.skyhanni.data.PetAPI
 import at.hannibal2.skyhanni.mixins.hooks.ItemStackCachedData
 import at.hannibal2.skyhanni.utils.ItemUtils.getInternalName
 import at.hannibal2.skyhanni.utils.ItemUtils.getLore
 import at.hannibal2.skyhanni.utils.ItemUtils.name
 import at.hannibal2.skyhanni.utils.NEUInternalName.Companion.asInternalName
-import at.hannibal2.skyhanni.utils.StringUtils.matchMatcher
 import at.hannibal2.skyhanni.utils.StringUtils.removeColor
 import com.google.gson.JsonObject
 import net.minecraft.item.Item
@@ -92,11 +92,7 @@ object SkyBlockItemModifierUtils {
     @Suppress("CAST_NEVER_SUCCEEDS")
     inline val ItemStack.cachedData get() = (this as ItemStackCachedData).skyhanni_cachedData
 
-    fun ItemStack.getPetLevel(): Int {
-        return UtilsPatterns.petLevelPattern.matchMatcher(this.displayName) {
-            group("level").toInt()
-        } ?: 0
-    }
+    fun ItemStack.getPetLevel(): Int = PetAPI.getPetLevel(displayName) ?: 0
 
     fun ItemStack.getMaxPetLevel() = if (this.getInternalName() == "GOLDEN_DRAGON;4".asInternalName()) 200 else 100
 
@@ -158,7 +154,7 @@ object SkyBlockItemModifierUtils {
     fun ItemStack.getReforgeName() = getAttributeString("modifier")?.let {
         when {
             it == "pitchin" -> "pitchin_koi"
-            it == "warped" && name!!.removeColor().startsWith("Hyper ") -> "endstone_geode"
+            it == "warped" && name.removeColor().startsWith("Hyper ") -> "endstone_geode"
 
             else -> it
         }
@@ -179,13 +175,17 @@ object SkyBlockItemModifierUtils {
 
     fun ItemStack.hasArtOfPeace() = getAttributeBoolean("artOfPeaceApplied")
 
+    fun ItemStack.isMuseumDonated() = getAttributeBoolean("donated_museum")
+
     fun ItemStack.getLivingMetalProgress() = getAttributeInt("lm_evo")
 
     fun ItemStack.getBottleOfJyrreSeconds() = getAttributeInt("bottle_of_jyrre_seconds")
 
     fun ItemStack.getEdition() = getAttributeInt("edition")
 
-    fun ItemStack.getEnchantments() = getExtraAttributes()?.takeIf { it.hasKey("enchantments") }?.run {
+    fun ItemStack.getNewYearCake() = getAttributeInt("new_years_cake")
+
+    fun ItemStack.getEnchantments(): Map<String, Int>? = getExtraAttributes()?.takeIf { it.hasKey("enchantments") }?.run {
         val enchantments = this.getCompoundTag("enchantments")
         enchantments.keySet.associateWith { enchantments.getInteger(it) }
     }
@@ -226,7 +226,7 @@ object SkyBlockItemModifierUtils {
 
                 val quality = GemstoneQuality.getByName(value)
                 if (quality == null) {
-                    ChatUtils.debug("Gemstone quality is null for item $name: ('$key' = '$value')")
+                    ChatUtils.debug("Gemstone quality is null for item $name§7: ('$key' = '$value')")
                     continue
                 }
                 if (type != null) {
@@ -235,7 +235,7 @@ object SkyBlockItemModifierUtils {
                     val newKey = gemstones.getString(key + "_gem")
                     val newType = GemstoneType.getByName(newKey)
                     if (newType == null) {
-                        ChatUtils.debug("Gemstone type is null for item $name: ('$newKey' with '$key' = '$value')")
+                        ChatUtils.debug("Gemstone type is null for item $name§7: ('$newKey' with '$key' = '$value')")
                         continue
                     }
                     list.add(GemstoneSlot(newType, quality))
@@ -255,7 +255,7 @@ object SkyBlockItemModifierUtils {
         getExtraAttributes()?.getLong(label)?.takeUnless { it == 0L }
 
     private fun ItemStack.getAttributeBoolean(label: String): Boolean {
-        return getExtraAttributes()?.hasKey(label) ?: false
+        return getExtraAttributes()?.getBoolean(label) ?: false
     }
 
     fun ItemStack.getExtraAttributes() = tagCompound?.getCompoundTag("ExtraAttributes")
@@ -288,6 +288,10 @@ object SkyBlockItemModifierUtils {
         JASPER("Jasper"),
         RUBY("Ruby"),
         OPAL("Opal"),
+        ONYX("Onyx"),
+        AQUAMARINE("Aquamarine"),
+        CITRINE("Citrine"),
+        PERIDOT("Peridot"),
         ;
 
         companion object {
@@ -305,18 +309,23 @@ object SkyBlockItemModifierUtils {
         JASPER('d'),
         RUBY('c'),
         OPAL('f'),
+        ONYX('8'),
+        AQUAMARINE('3'),
+        CITRINE('4'),
+        PERIDOT('2'),
         COMBAT('4'),
-        OFFENSIVE('9'),
         DEFENSIVE('a'),
         MINING('5'),
-        UNIVERSAL('f')
+        UNIVERSAL('f'),
         ;
 
         companion object {
 
-            fun getColorCode(name: String) = entries.stream().filter {
-                name.uppercase(Locale.ENGLISH).contains(it.name)
-            }.findFirst().get().colorCode
+            fun getByName(name: String): GemstoneSlotType =
+                entries.firstOrNull { name.uppercase(Locale.ENGLISH).contains(it.name) }
+                    ?: error("Unknwon GemstoneSlotType: '$name'")
+
+            fun getColorCode(name: String) = getByName(name).colorCode
         }
     }
 }

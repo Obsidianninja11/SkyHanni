@@ -1,14 +1,22 @@
 package at.hannibal2.skyhanni.utils
 
+import at.hannibal2.skyhanni.config.features.skillprogress.SkillProgressBarConfig
+import at.hannibal2.skyhanni.features.chroma.ChromaShaderManager
+import at.hannibal2.skyhanni.features.chroma.ChromaType
+import io.github.moulberry.notenoughupdates.util.Utils
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.item.ItemStack
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.text.DecimalFormat
+import kotlin.math.ceil
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -293,5 +301,119 @@ object GuiRenderUtils {
     fun renderItemAndBackground(item: ItemStack, x: Int, y: Int, colour: Int) {
         renderItemStack(item, x, y)
         GuiScreen.drawRect(x, y, x + 16, y + 16, colour)
+    }
+
+    // Taken and edited from NEU <- it's broken
+    fun renderTexturedBar(
+        x: Float,
+        y: Float,
+        xSize: Float,
+        completed: Float,
+        color: Color,
+        useChroma: Boolean,
+        texture: SkillProgressBarConfig.TexturedBar.UsedTexture,
+        height: Float,
+    ) {
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(x, y, 0f)
+        val w = xSize.toInt()
+        val w_2 = w / 2
+        val k = min(w.toDouble(), ceil((completed * w).toDouble())).toInt()
+        val vanilla = texture == SkillProgressBarConfig.TexturedBar.UsedTexture.MATCH_PACK
+        val vMinEmpty = if (vanilla) 64 / 256f else 0f
+        val vMaxEmpty = if (vanilla) 69 / 256f else .5f
+        val vMinFilled = if (vanilla) 69 / 256f else .5f
+        val vMaxFilled = if (vanilla) 74 / 256f else 1f
+
+        if (useChroma) {
+            ChromaShaderManager.begin(ChromaType.TEXTURED)
+            GlStateManager.color(
+                Color.LIGHT_GRAY.darker().red / 255f,
+                Color.LIGHT_GRAY.darker().green / 255f,
+                Color.LIGHT_GRAY.darker().blue / 255f,
+                1f
+            )
+        } else {
+            GlStateManager.color(color.darker().red / 255f, color.darker().green / 255f, color.darker().blue / 255f, 1f)
+        }
+
+        Utils.drawTexturedRect(x, y, w_2.toFloat(), height, 0f, w_2 / xSize, vMinEmpty, vMaxEmpty, GL11.GL_NEAREST)
+        Utils.drawTexturedRect(
+            x + w_2,
+            y,
+            w_2.toFloat(),
+            height,
+            1 - w_2 / xSize,
+            1f,
+            vMinEmpty,
+            vMaxEmpty,
+            GL11.GL_NEAREST
+        )
+
+        if (useChroma) {
+            GlStateManager.color(Color.WHITE.red / 255f, Color.WHITE.green / 255f, Color.WHITE.blue / 255f, 1f)
+        } else {
+            GlStateManager.color(color.red / 255f, color.green / 255f, color.blue / 255f, 1f)
+        }
+
+        if (k > 0) {
+            val uMax = w_2.toDouble().coerceAtMost(k.toDouble() / xSize).toFloat()
+            val width = w_2.coerceAtMost(k).toFloat()
+            Utils.drawTexturedRect(x, y, width, height, 0f, uMax, vMinFilled, vMaxFilled, GL11.GL_NEAREST)
+            if (completed > 0.5f) {
+                Utils.drawTexturedRect(
+                    x + w_2,
+                    y,
+                    (k - w_2).toFloat(),
+                    height,
+                    1 - w_2 / xSize,
+                    1 + (k - w) / xSize,
+                    vMinFilled,
+                    vMaxFilled,
+                    GL11.GL_NEAREST
+                )
+            }
+        }
+        if (useChroma) {
+            ChromaShaderManager.end()
+        }
+        GlStateManager.popMatrix()
+    }
+
+    /**@Mojang */
+    fun drawGradientRect(
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        startColor: Int,
+        endColor: Int,
+        zLevel: Double,
+    ) {
+        val f = (startColor shr 24 and 255).toFloat() / 255.0f
+        val g = (startColor shr 16 and 255).toFloat() / 255.0f
+        val h = (startColor shr 8 and 255).toFloat() / 255.0f
+        val i = (startColor and 255).toFloat() / 255.0f
+        val j = (endColor shr 24 and 255).toFloat() / 255.0f
+        val k = (endColor shr 16 and 255).toFloat() / 255.0f
+        val l = (endColor shr 8 and 255).toFloat() / 255.0f
+        val m = (endColor and 255).toFloat() / 255.0f
+        GlStateManager.disableTexture2D()
+        GlStateManager.enableBlend()
+        GlStateManager.disableAlpha()
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0)
+        GlStateManager.shadeModel(7425)
+        val tessellator = Tessellator.getInstance()
+        val worldRenderer = tessellator.worldRenderer
+        worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR)
+        worldRenderer.pos(right.toDouble(), top.toDouble(), zLevel).color(g, h, i, f).endVertex()
+        worldRenderer.pos(left.toDouble(), top.toDouble(), zLevel).color(g, h, i, f).endVertex()
+        worldRenderer.pos(left.toDouble(), bottom.toDouble(), zLevel).color(k, l, m, j).endVertex()
+        worldRenderer.pos(right.toDouble(), bottom.toDouble(), zLevel).color(k, l, m, j).endVertex()
+        tessellator.draw()
+        GlStateManager.shadeModel(7424)
+        GlStateManager.disableBlend()
+        GlStateManager.enableAlpha()
+        GlStateManager.enableTexture2D()
     }
 }
