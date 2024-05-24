@@ -1,10 +1,8 @@
 package at.hannibal2.skyhanni.utils
 
-import at.hannibal2.skyhanni.SkyHanniMod.Companion.minecraftDirectory
-import at.hannibal2.skyhanni.SkyHanniMod
 import at.hannibal2.skyhanni.test.command.ErrorManager
+import net.minecraft.client.Minecraft
 import java.awt.Desktop
-import java.io.File
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -20,7 +18,7 @@ object OSUtils {
                 Desktop.getDesktop().browse(URI(url))
             } catch (e: IOException) {
                 ErrorManager.logErrorWithData(
-                    e, "Error while opening website.",
+                    e, "Error while opening website",
                     "url" to url
                 )
             }
@@ -36,15 +34,22 @@ object OSUtils {
     }
 
     fun openBrowserCommand(array: Array<String>) {
-        if (array.size != 1) return
-        openBrowser(array[0])
+        if (array.isNotEmpty()) {
+            openBrowser(array.joinToString(""))
+            ChatUtils.chat("Opening url: ${array.joinToString("")}")
+        }
     }
 
-    fun openFile(path: String, absolute: Boolean = false) {
+    fun openFile(path: String, absolute: Boolean = false, sendMessage: Boolean = false) {
+        if (sendMessage) {
+            val displayPath = if (absolute) path
+            else ".minecraft${if (path.isNotEmpty()) File.separatorChar else ""}$path"
+            ChatUtils.chat("Opening file: $displayPath")
+        }
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
             try {
                 if (absolute) Desktop.getDesktop().open(File(path))
-                else Desktop.getDesktop().open(File("${SkyHanniMod.minecraftDirectory.path}${File.separatorChar}$path"))
+                else Desktop.getDesktop().open(File("${Minecraft.getMinecraft().mcDataDir}${File.separatorChar}$path"))
             } catch (e: IOException) {
                 ErrorManager.logErrorWithData(e, "Error opening file: $path")
             }
@@ -55,6 +60,10 @@ object OSUtils {
                 "File opening not supported."
             )
         }
+    }
+
+    fun openFileCommand(array: Array<String>) {
+        if (array.isNotEmpty()) openFile(array.joinToString(""), absolute = true, sendMessage = true)
     }
 
     fun copyToClipboard(text: String) {

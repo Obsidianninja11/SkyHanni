@@ -13,8 +13,6 @@ import at.hannibal2.skyhanni.utils.chat.Text.onClick
 import at.hannibal2.skyhanni.utils.chat.Text.prefix
 import at.hannibal2.skyhanni.utils.chat.Text.url
 import net.minecraft.client.Minecraft
-import net.minecraft.event.ClickEvent
-import net.minecraft.event.HoverEvent
 import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatStyle
 import net.minecraft.util.IChatComponent
@@ -201,11 +199,38 @@ object ChatUtils {
     ) {
         val msgPrefix = if (prefix) prefixColor + CHAT_PREFIX else ""
         chat(Text.text(msgPrefix + message) {
-            this.url = url
+            if (noConfirmation) this.command = "/shopenlink $url" else this.url = url
             this.hover = "$prefixColor$hover".asComponent()
         })
         if (autoOpen) OSUtils.openBrowser(url)
     }
+
+//     /**
+//      * Sends a message to the user that they can click and run an action
+//      * @param message The message to be sent
+//      * @param action The action type
+//      * @param actionText The action to perform
+//      * @param hover The message to be shown when the message is hovered
+//      * @param prefix Whether to prefix the message with the chat prefix, default true
+//      * @param prefixColor Color that the prefix should be, default yellow (§e)
+//      *
+//      * @see CHAT_PREFIX
+//      */
+//     fun clickableActionChat(
+//         message: String,
+//         action: ClickEvent.Action,
+//         actionText: String,
+//         hover: String,
+//         prefix: Boolean = true,
+//         prefixColor: String = "§e"
+//     ) {
+//         val msgPrefix = if (prefix) prefixColor + CHAT_PREFIX else ""
+//         val text = ChatComponentText(msgPrefix + message)
+//         text.chatStyle.chatClickEvent = ClickEvent(action, actionText)
+//         text.chatStyle.chatHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ChatComponentText("$prefixColor$hover"))
+//         Minecraft.getMinecraft().thePlayer.addChatMessage(text)
+//     }
+
 
     /**
      * Sends a message to the user that combines many message components e.g. clickable, hoverable and regular text

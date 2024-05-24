@@ -87,10 +87,7 @@ import at.hannibal2.skyhanni.utils.chat.Text
 import at.hannibal2.skyhanni.utils.chat.Text.hover
 import at.hannibal2.skyhanni.utils.chat.Text.suggest
 import at.hannibal2.skyhanni.utils.repopatterns.RepoPatternGui
-import net.minecraft.client.Minecraft
 import net.minecraft.command.ICommandSender
-import net.minecraft.event.ClickEvent
-import net.minecraft.event.HoverEvent
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ChatComponentText
 import net.minecraftforge.client.ClientCommandHandler
@@ -539,8 +536,12 @@ object Commands {
 
     private fun internalCommands() {
         registerCommand("shaction", "") { ChatClickActionManager.onCommand(it) }
-        registerCommand("shopenlink", "Opens a link in the browser.") { OSUtils.openBrowser(it[0]) }
-        registerCommand("shopenfile", "Opens a file.") { OSUtils.openFile(it[0])}
+        registerCommand("shopenlink", "Opens a link in the browser.") { OSUtils.openBrowserCommand(it) }
+        registerCommand("shopenfile", "Opens a file with an absolute path.") { OSUtils.openFileCommand(it) }
+        registerCommand(
+            "shopenmcfolder",
+            "Opens a file from the .minecraft folder."
+        ) { OSUtils.openFile(it.joinToString(""), absolute = false, sendMessage = true) }
     }
 
     private fun shortenedCommands() {
