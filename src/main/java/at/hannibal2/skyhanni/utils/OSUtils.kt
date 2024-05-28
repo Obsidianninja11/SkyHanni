@@ -9,13 +9,19 @@ import java.net.URI
 
 object OSUtils {
 
+    //     @Deprecated("Use openBrowserWithChat() instead.", ReplaceWith("openBrowserWithChat(url)"))
     @JvmStatic
     fun openBrowser(url: String) {
+        openBrowserWithChat(url, false)
+    }
+
+    fun openBrowserWithChat(url: String, sendMessage: Boolean = false) {
         val desktopSupported = Desktop.isDesktopSupported()
         val supportedActionBrowse = Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)
         if (desktopSupported && supportedActionBrowse) {
             try {
                 Desktop.getDesktop().browse(URI(url))
+                if (sendMessage) ChatUtils.chat("Opened url: §b$url")
             } catch (e: IOException) {
                 ErrorManager.logErrorWithData(
                     e, "Error while opening website",
@@ -33,23 +39,16 @@ object OSUtils {
         }
     }
 
-    fun openBrowserCommand(array: Array<String>) {
-        if (array.isNotEmpty()) {
-            openBrowser(array.joinToString(""))
-            ChatUtils.chat("Opening url: ${array.joinToString("")}")
-        }
-    }
-
     fun openFile(path: String, absolute: Boolean = false, sendMessage: Boolean = false) {
-        if (sendMessage) {
-            val displayPath = if (absolute) path
-            else ".minecraft${if (path.isNotEmpty()) File.separatorChar else ""}$path"
-            ChatUtils.chat("Opening file: $displayPath")
-        }
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
             try {
-                if (absolute) Desktop.getDesktop().open(File(path))
+                if (absolute && path.isNotEmpty()) Desktop.getDesktop().open(File(path))
                 else Desktop.getDesktop().open(File("${Minecraft.getMinecraft().mcDataDir}${File.separatorChar}$path"))
+                if (sendMessage) {
+                    val displayPath = if (absolute) path
+                    else ".minecraft${if (path.isNotEmpty()) File.separatorChar else ""}$path"
+                    ChatUtils.chat("Opened file location: §b$displayPath")
+                }
             } catch (e: IOException) {
                 ErrorManager.logErrorWithData(e, "Error opening file: $path")
             }
@@ -62,8 +61,16 @@ object OSUtils {
         }
     }
 
-    fun openFileCommand(array: Array<String>) {
-        if (array.isNotEmpty()) openFile(array.joinToString(""), absolute = true, sendMessage = true)
+    fun openBrowserCommand(args: Array<String>) {
+        if (args.isEmpty()) return
+        val sendMessage = if (args.size > 1) args[1] == "true" else false
+        openBrowserWithChat(args[0], sendMessage)
+    }
+
+    fun openFileCommand(args: Array<String>, absolute: Boolean = false) {
+        val path = if (args.isNotEmpty()) args[0] else ""
+        val sendMessage = if (args.size > 1) args[1] == "true" else false
+        openFile(path, absolute, sendMessage)
     }
 
     fun copyToClipboard(text: String) {

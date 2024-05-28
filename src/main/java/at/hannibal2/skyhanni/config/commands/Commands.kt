@@ -537,11 +537,8 @@ object Commands {
     private fun internalCommands() {
         registerCommand("shaction", "") { ChatClickActionManager.onCommand(it) }
         registerCommand("shopenlink", "Opens a link in the browser.") { OSUtils.openBrowserCommand(it) }
-        registerCommand("shopenfile", "Opens a file with an absolute path.") { OSUtils.openFileCommand(it) }
-        registerCommand(
-            "shopenmcfolder",
-            "Opens a file from the .minecraft folder."
-        ) { OSUtils.openFile(it.joinToString(""), absolute = false, sendMessage = true) }
+        registerCommand("shopenfile", "Opens a file on the computer.") { OSUtils.openFileCommand(it, true) }
+        registerCommand("shopenmcfolder", "Opens the .minecraft folder.") { OSUtils.openFileCommand(it) }
     }
 
     private fun shortenedCommands() {
