@@ -34,7 +34,7 @@ object WikiManager {
     @SubscribeEvent
     fun onMessageSendToServer(event: MessageSendToServerEvent) {
         if (!LorenzUtils.inSkyBlock) return
-        if (!isEnabled()) return
+        if (!config.enabled) return
         val message = event.message.lowercase()
         if (!(message.startsWith("/wiki"))) return
 
@@ -103,13 +103,18 @@ object WikiManager {
 
     fun sendWikiMessage(
         search: String = "", displaySearch: String = search,
-        autoOpen: Boolean = config.autoOpenWiki, useFandom: Boolean = config.useFandom
+        autoOpen: Boolean = config.autoOpenWiki, useFandom: Boolean = config.useFandom,
+        skipConfirmation: Boolean = config.skipConfirmation
     ) {
         val wiki = if (useFandom) "SkyBlock Fandom Wiki" else "Official SkyBlock Wiki"
         val urlPrefix = if (useFandom) FANDOM_URL_PREFIX else OFFICIAL_URL_PREFIX
         if (search == "") {
             ChatUtils.clickableLinkChat(
-                "§7Click §e§lHERE §7to visit the §6$wiki§7!", urlPrefix, "§7The $wiki!"
+                "§7Click §e§lHERE §7to visit the §6$wiki§7!",
+                urlPrefix,
+                "§7The $wiki!",
+                noConfirmation = skipConfirmation,
+                autoOpen = autoOpen
             )
             return
         }
@@ -121,9 +126,8 @@ object WikiManager {
             "§7Click §e§lHERE §7to find §a$displaySearch §7on the §6$wiki§7!",
             searchUrl,
             "§7View §a$displaySearch §7on the §6$wiki§7!",
-            autoOpen
+            noConfirmation = skipConfirmation,
+            autoOpen = autoOpen
         )
     }
-
-    private fun isEnabled() = config.enabled
 }

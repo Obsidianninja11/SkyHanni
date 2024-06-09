@@ -83,6 +83,7 @@ import at.hannibal2.skyhanni.test.command.TrackSoundsCommand
 import at.hannibal2.skyhanni.utils.APIUtil
 import at.hannibal2.skyhanni.utils.ChatUtils
 import at.hannibal2.skyhanni.utils.LorenzUtils
+import at.hannibal2.skyhanni.utils.OSUtils
 import at.hannibal2.skyhanni.utils.SoundUtils
 import at.hannibal2.skyhanni.utils.TabListData
 import at.hannibal2.skyhanni.utils.chat.ChatClickActionManager
@@ -543,6 +544,9 @@ object Commands {
 
     private fun internalCommands() {
         registerCommand("shaction", "") { ChatClickActionManager.onCommand(it) }
+        registerCommand("shopenlink", "Opens a link in the browser.") { OSUtils.openBrowserCommand(it) }
+        registerCommand("shopenfile", "Opens a file on the computer.") { OSUtils.openFileCommand(it, true) }
+        registerCommand("shopenmcfolder", "Opens the .minecraft folder.") { OSUtils.openFileCommand(it) }
     }
 
     private fun shortenedCommands() {

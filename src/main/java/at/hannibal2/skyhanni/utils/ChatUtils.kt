@@ -182,8 +182,9 @@ object ChatUtils {
      * Sends a message to the user that they can click and run a command
      * @param message The message to be sent
      * @param url The url to be opened
-     * @param autoOpen Automatically opens the url as well as sending the clickable link message
      * @param hover The message to be shown when the message is hovered
+     * @param noConfirmation Removes the link confirmation by using a command to open the link
+     * @param autoOpen Automatically opens the url as well as sending the clickable link message
      * @param prefix Whether to prefix the message with the chat prefix, default true
      * @param prefixColor Color that the prefix should be, default yellow (§e)
      *
@@ -193,17 +194,45 @@ object ChatUtils {
         message: String,
         url: String,
         hover: String = "§eOpen $url",
+        noConfirmation: Boolean = false,
         autoOpen: Boolean = false,
         prefix: Boolean = true,
         prefixColor: String = "§e",
     ) {
         val msgPrefix = if (prefix) prefixColor + CHAT_PREFIX else ""
         chat(Text.text(msgPrefix + message) {
-            this.url = url
+            if (noConfirmation) this.command = "/shopenlink $url" else this.url = url
             this.hover = "$prefixColor$hover".asComponent()
         })
         if (autoOpen) OSUtils.openBrowser(url)
     }
+
+//     /**
+//      * Sends a message to the user that they can click and run an action
+//      * @param message The message to be sent
+//      * @param action The action type
+//      * @param actionText The action to perform
+//      * @param hover The message to be shown when the message is hovered
+//      * @param prefix Whether to prefix the message with the chat prefix, default true
+//      * @param prefixColor Color that the prefix should be, default yellow (§e)
+//      *
+//      * @see CHAT_PREFIX
+//      */
+//     fun clickableActionChat(
+//         message: String,
+//         action: ClickEvent.Action,
+//         actionText: String,
+//         hover: String,
+//         prefix: Boolean = true,
+//         prefixColor: String = "§e"
+//     ) {
+//         val msgPrefix = if (prefix) prefixColor + CHAT_PREFIX else ""
+//         val text = ChatComponentText(msgPrefix + message)
+//         text.chatStyle.chatClickEvent = ClickEvent(action, actionText)
+//         text.chatStyle.chatHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ChatComponentText("$prefixColor$hover"))
+//         Minecraft.getMinecraft().thePlayer.addChatMessage(text)
+//     }
+
 
     /**
      * Sends a message to the user that combines many message components e.g. clickable, hoverable and regular text
